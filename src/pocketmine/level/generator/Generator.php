@@ -57,7 +57,9 @@ abstract class Generator{
 	public static function getGenerator($name){
 		if(isset(Generator::$list[$name = strtolower($name)])){
 			return Generator::$list[$name];
+			print_r("\non $name");
 		}
+		printf("\nno");
 
 		return Normal::class;
 	}
