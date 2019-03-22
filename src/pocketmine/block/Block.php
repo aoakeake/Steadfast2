@@ -39,7 +39,25 @@ use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 
 
-class Block extends Position implements Metadatable{
+class Block extends Position implements Metadatable {
+
+	const COLOR_WHITE = 0;
+	const COLOR_ORANGE = 1;
+	const COLOR_MAGENTA = 2;
+	const COLOR_LIGHT_BLUE = 3;
+	const COLOR_YELLOW = 4;
+	const COLOR_LIME = 5;
+	const COLOR_PINK = 6;
+	const COLOR_GRAY = 7;
+	const COLOR_LIGHT_GRAY = 8;
+	const COLOR_CYAN = 9;
+	const COLOR_PURPLE = 10;
+	const COLOR_BLUE = 11;
+	const COLOR_BROWN = 12;
+	const COLOR_GREEN = 13;
+	const COLOR_RED = 14;
+	const COLOR_BLACK = 15;
+
 	const AIR = 0;
 	const STONE = 1;
 	const GRASS = 2;
@@ -193,11 +211,14 @@ class Block extends Position implements Metadatable{
 	const NETHER_BRICK_BLOCK = 112;
 	const NETHER_BRICK_FENCE = 113;
 	const NETHER_BRICKS_STAIRS = 114;
+	const NETHER_WART = 115;
 	const NETHER_WART_BLOCK = 115;
 	const ENCHANTING_TABLE = 116;
 	const ENCHANT_TABLE = 116;
 	const ENCHANTMENT_TABLE = 116;
+	const BREWING_STAND = 117;
 	const BREWING_STAND_BLOCK = 117;
+	const CAULDRON = 118;
 	const CAULDRON_BLOCK = 118;
 	const END_PORTAL = 119;
 	const END_PORTAL_FRAME = 120;
@@ -294,11 +315,12 @@ class Block extends Position implements Metadatable{
 	const ACACIA_DOOR_BLOCK = 196;
 	const DARK_OAK_DOOR_BLOCK = 197;
 	const GRASS_PATH = 198;
+	const ITEM_FRAME = 199;
 	const ITEM_FRAME_BLOCK = 199;
     const CHORUS_FLOWER = 200;
 	const PURPUR_BLOCK = 201;
-	const PUPPUR_STAIRS = 202;
-	// 203 - 204 doesn't exist in client (at least in 1.2.13)
+	// 202, 204 doesn't exist in client (at least in 1.2.13)
+	const PURPUR_STAIRS = 203;
 	const UNDYED_SHULKER_BOX = 205;
 	const END_BRICKS = 206;
 	const FROSTED_ICE = 207;
@@ -384,7 +406,6 @@ class Block extends Position implements Metadatable{
 		static $map = [
 			"hardness" => "getHardness",
 			"lightLevel" => "getLightLevel",
-			"frictionFactor" => "getFrictionFactor",
 			"name" => "getName",
 			"isPlaceable" => "canBePlaced",
 			"isReplaceable" => "canBeReplaced",
@@ -541,6 +562,7 @@ class Block extends Position implements Metadatable{
 			self::$list[self::WOOD2] = Wood2::class;
 			self::$list[self::ACACIA_WOOD_STAIRS] = AcaciaWoodStairs::class;
 			self::$list[self::DARK_OAK_WOOD_STAIRS] = DarkOakWoodStairs::class;
+			self::$list[self::SEA_LANTERN] = SeaLantern::class;
 
 			self::$list[self::HAY_BALE] = HayBale::class;
 			self::$list[self::CARPET] = Carpet::class;
@@ -619,7 +641,48 @@ class Block extends Position implements Metadatable{
 			
 			self::$list[self::SHULKER_BOX] = ShulkerBox::class;
 			self::$list[self::PRISMARINE] = Prismarine::class;
+			
+			self::$list[self::NOTE_BLOCK] = NoteBlock::class;
+			self::$list[self::JUKEBOX] = Jukebox::class;
+			self::$list[self::PORTAL] = Portal::class;
+			
+			self::$list[self::BROWN_MUSHROOM_BLOCK] = MushroomBlock::class;
+			self::$list[self::RED_MUSHROOM_BLOCK] = MushroomBlock::class;
+			
+			self::$list[self::NETHER_WART] = NetherWart::class;
+			self::$list[self::BREWING_STAND] = BrewingStand::class;
+			self::$list[self::CAULDRON] = Cauldron::class;
+			self::$list[self::COCOA] = Cocoa::class;
+			self::$list[self::BEACON] = Beacon::class;
+			self::$list[self::PACKED_ICE] = PackedIce::class;
+			self::$list[self::STANDING_BANNER] = StandingBanner::class;
+			self::$list[self::WALL_BANNER] = WallBanner::class;
+			self::$list[self::RED_SANDSTONE] = RedSandstone::class;
+			self::$list[self::RED_SANDSTONE_STAIRS] = RedSandstoneStairs::class;
+			self::$list[self::ITEM_FRAME] = ItemFrame::class;
+			self::$list[self::PURPUR_STAIRS] = PurpurStairs::class;
+			self::$list[self::UNDYED_SHULKER_BOX] = UndyedShulkerBox::class;
+			self::$list[self::FROSTED_ICE] = FrostedIce::class;
+			self::$list[self::RED_NETHER_BRICK] = RedNetherBrick::class;
+			self::$list[self::BONE_BLOCK] = BoneBlock::class;
             
+			self::$list[self::PURPLE_GLAZED_TERRACOTTA] = PurpleGlazedTerracotta::class;
+			self::$list[self::WHITE_GLAZED_TERRACOTTA] = WhiteGlazedTerracotta::class;
+			self::$list[self::ORANGE_GLAZED_TERRACOTTA] = OrangeGlazedTerracotta::class;
+			self::$list[self::MAGENTA_GLAZED_TERRACOTTA] = MagentaGlazedTerracotta::class;
+			self::$list[self::LIGHT_BLUE_GLAZED_TERRACOTTA] = LightBlueGlazedTerracotta::class;
+			self::$list[self::YELLOW_GLAZED_TERRACOTTA] = YellowGlazedTerracotta::class;
+			self::$list[self::LIME_GLAZED_TERRACOTTA] = LimeGlazedTerracotta::class;
+			self::$list[self::PINK_GLAZED_TERRACOTTA] = PinkGlazedTerracotta::class;
+			self::$list[self::GRAY_GLAZED_TERRACOTTA] = GrayGlazedTerracotta::class;
+			self::$list[self::SILVER_GLAZED_TERRACOTTA] = LightGrayGlazedTerracotta::class;
+			self::$list[self::CYAN_GLAZED_TERRACOTTA] = CyanGlazedTerracotta::class;
+			self::$list[self::BLUE_GLAZED_TERRACOTTA] = BlueGlazedTerracotta::class;
+			self::$list[self::BROWN_GLAZED_TERRACOTTA] = BrownGlazedTerracotta::class;
+			self::$list[self::GREEN_GLAZED_TERRACOTTA] = GreenGlazedTerracotta::class;
+			self::$list[self::RED_GLAZED_TERRACOTTA] = RedGlazedTerracotta::class;
+			self::$list[self::BLACK_GLAZED_TERRACOTTA] = BlackGlazedTerracotta::class;
+			
 			foreach (self::$list as $id => $class) {
 				static::registerBlock($id, $class);
 			}
@@ -790,7 +853,7 @@ class Block extends Position implements Metadatable{
 	/**
 	 * @return float
 	 */
-	public function getFrictionFactor(){
+	public static function getFrictionFactor(){
 		return 0.6;
 	}
 
@@ -1042,7 +1105,7 @@ class Block extends Position implements Metadatable{
 	public function collidesWithBB(AxisAlignedBB $bb){
 		$bb2 = $this->getBoundingBox();
 
-		return $bb2 !== null and $bb->intersectsWith($bb2);
+		return $bb2 !== null && $bb->intersectsWith($bb2);
 	}
 
 	/**
@@ -1192,22 +1255,22 @@ class Block extends Position implements Metadatable{
 
 	protected function getColorNameByMeta($meta) {
 		static $colors = [
-			0 => "White",
-			1 => "Orange",
-			2 => "Magenta",
-			3 => "Light Blue",
-			4 => "Yellow",
-			5 => "Lime",
-			6 => "Pink",
-			7 => "Gray",
-			8 => "Light Gray",
-			9 => "Cyan",
-			10 => "Purple",
-			11 => "Blue",
-			12 => "Brown",
-			13 => "Green",
-			14 => "Red",
-			15 => "Black"
+			self::COLOR_WHITE => "White",
+			self::COLOR_ORANGE => "Orange",
+			self::COLOR_MAGENTA => "Magenta",
+			self::COLOR_LIGHT_BLUE => "Light Blue",
+			self::COLOR_YELLOW => "Yellow",
+			self::COLOR_LIME => "Lime",
+			self::COLOR_PINK => "Pink",
+			self::COLOR_GRAY => "Gray",
+			self::COLOR_LIGHT_GRAY => "Light Gray",
+			self::COLOR_CYAN => "Cyan",
+			self::COLOR_PURPLE => "Purple",
+			self::COLOR_BLUE => "Blue",
+			self::COLOR_BROWN => "Brown",
+			self::COLOR_GREEN => "Green",
+			self::COLOR_RED => "Red",
+			self::COLOR_BLACK => "Black"
 		];
 		return $colors[$meta & 0x0f];
 	}

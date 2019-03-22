@@ -20,6 +20,7 @@ class MapItemDataPacket extends PEPacket {
 	public $data;
 	public $pointners = [];
 	public $entityIds = [];
+	public $isLockedMap = false;
 
 	public function decode($playerProtocol) {
 		
@@ -31,6 +32,9 @@ class MapItemDataPacket extends PEPacket {
 		$this->putVarInt($this->flags);
 		if ($playerProtocol >= Info::PROTOCOL_120) {
 			$this->putByte(0); // dimension
+		}
+		if ($playerProtocol >= Info::PROTOCOL_351) {
+			$this->putByte($this->isLockedMap);
 		}
 		switch ($this->flags) {
 			case 2:
@@ -47,16 +51,19 @@ class MapItemDataPacket extends PEPacket {
 			case 4:
 				$this->putByte($this->scale);
 				if ($playerProtocol >= Info::PROTOCOL_120) {
-					if (!empty($this->entityIds)) {
-						$this->putVarInt(count($this->entityIds));
-						foreach ($this->entityIds as $entityId) {
-							if ($playerProtocol >= Info::PROTOCOL_271) {
-								$this->putLInt(self::TRACKED_OBJECT_TYPE_ENTITY);
-							}
-							$this->putSignedVarInt($entityId);
+					if (($entityCount = count($this->entityIds)) < ($pointnerCount = count($this->pointners))) {
+						$lastFaKeId = -1;
+						while ($entityCount < $pointnerCount) {
+							array_unshift($this->entityIds, $lastFaKeId--);
+							$entityCount++;
 						}
-					} else {
-						$this->put("\x01\xfd\xff\xff\xff\x1f"); // hack for 1.2, crash if send 0 as entity count
+					}
+					$this->putVarInt($entityCount);
+					foreach ($this->entityIds as $entityId) {
+						if ($playerProtocol >= Info::PROTOCOL_271) {
+							$this->putLInt(self::TRACKED_OBJECT_TYPE_ENTITY);
+						}
+						$this->putSignedVarInt($entityId);
 					}
 				}
 				$this->putVarInt(count($this->pointners));

@@ -21,21 +21,18 @@
 
 namespace pocketmine\entity;
 
-
 use pocketmine\block\Block;
-use pocketmine\block\Flowable;
 use pocketmine\block\Liquid;
 use pocketmine\event\entity\EntityBlockChangeEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\item\Item as ItemItem;
+use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\network\Network;
 use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\network\protocol\PEPacket;
 use pocketmine\Player;
-use pocketmine\level\Level;
 
 class FallingSand extends Entity{
 	const NETWORK_ID = 66;
@@ -171,7 +168,10 @@ class FallingSand extends Entity{
 			$pk->speedZ = $this->motionZ;
 			$pk->yaw = $this->yaw;
 			$pk->pitch = $this->pitch;
-//			$pk->metadata = $this->dataProperties;
+			$pallet = PEPacket::getPallet($player->getPlayerProtocol());
+			if (!is_null($pallet)) { // for version higher than 1.1
+				$pk->metadata = [ self::DATA_ANIMAL_VARIANT => [self::DATA_TYPE_INT, $pallet->getBlockRuntimeIDByData($this->blockId, $this->damage)]];
+			}
 			$player->dataPacket($pk);
 		}
 	}

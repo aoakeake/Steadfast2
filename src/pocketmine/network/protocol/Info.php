@@ -33,7 +33,7 @@ interface Info{
 	const CURRENT_PROTOCOL = 101;
 //	const NEWEST_PROTOCOL = 82;
 //	const OLDEST_PROTOCOL = 81;
-	const ACCEPTED_PROTOCOLS = [110, 111, 112, 113, 134, 135, 136, 137, 140, 141, 150, 160, 200, 201, 220, 221, 222, 224, 223, 240, 250, 260, 261, 270, 271, 273, 274, 280, 281];
+	const ACCEPTED_PROTOCOLS = [110, 111, 112, 113, 134, 135, 136, 137, 140, 141, 150, 160, 200, 201, 220, 221, 222, 224, 223, 240, 250, 260, 261, 270, 271, 273, 274, 280, 281, 282, 290, 291, 310, 311, 312, 313, 330, 331, 332, 342, 340, 350, 351, 352, 353, 354];
 	
 
 	const PROTOCOL_110 = 110;
@@ -66,6 +66,24 @@ interface Info{
 	const PROTOCOL_274 = 274; // 1.5.0.10
 	const PROTOCOL_280 = 280; // 1.6.0.1
 	const PROTOCOL_281 = 281; // 1.6.0.5
+	const PROTOCOL_282 = 282; // 1.6.0.8
+	const PROTOCOL_290 = 290; // 1.7.0.2
+	const PROTOCOL_291 = 291; // 1.7.0.5
+	const PROTOCOL_310 = 310; // 1.8.0.4, 1.8.0.8
+	const PROTOCOL_311 = 311; // 1.8.0.9, 1.8.0.10
+	const PROTOCOL_312 = 312; // 1.8.0.11
+	const PROTOCOL_313 = 313; // 1.8.0 rc1
+	const PROTOCOL_330 = 330; // 1.9.0.0
+	const PROTOCOL_331 = 331; // 1.9.0.2
+	const PROTOCOL_332 = 332; // 1.9.0.3
+	const PROTOCOL_340 = 340; // 1.10.0.3
+	const PROTOCOL_342 = 342; // 1.10.0
+	const PROTOCOL_350 = 350; // 1.11.0.1
+	const PROTOCOL_351 = 351; // 1.11.0.3
+	const PROTOCOL_352 = 352; // 1.11.0.4
+	const PROTOCOL_353 = 353; // 1.11.0.5
+	const PROTOCOL_354 = 354; // 1.11.0.7
+	
 	/** OUTDATED (supporting will be removed with next release, may didn't work properly)*/
 	const PROTOCOL_120 = 120; // 1.2.0.xx (beta)
 //	const PROTOCOL_121 = 121; // 1.2.0.xx (beta)
@@ -141,14 +159,14 @@ interface Info{
 	const SET_PLAYER_GAMETYPE_PACKET = 0x3e;
 	const PLAYER_LIST_PACKET = 0x3f;
 //	const TELEMETRY_EVENT_PACKET = 0x40; // ??? EVENT_PACKET in 0.15.90.8
-//	const SPAWN_EXPERIENCE_ORB_PACKET = 0x41;
+	const SPAWN_EXPERIENCE_ORB_PACKET = 0x41;
 	const CLIENTBOUND_MAP_ITEM_DATA_PACKET = 0x42;
 	const MAP_INFO_REQUEST_PACKET = 0x43;
 	const REQUEST_CHUNK_RADIUS_PACKET = 0x44;
 	const CHUNK_RADIUS_UPDATE_PACKET = 0x45;
 //	const ITEM_FRAME_DROP_ITEM_PACKET = 0x46;
 //	const REPLACE_SELECTED_ITEM_PACKET = 0x47;
-//	const GAME_RULES_CHANGED_PACKET = 0x48;
+	const GAME_RULES_CHANGED_PACKET = 0x48;
 //	const CAMERA_PACKET = 0x49;
 //	const ADD_ITEM_PACKET = 0x4a;
 //	const BOSS_EVENT_PACKET = 0x4b;

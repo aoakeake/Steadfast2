@@ -47,6 +47,7 @@ class TextPacket extends PEPacket{
 	public $isLocolize = false;
 	public $xuid = '';
 	public $authorXUID = "";
+	public $platformChatId = "";
 
 	public function decode($playerProtocol){
 		$this->getHeader($playerProtocol);
@@ -60,7 +61,7 @@ class TextPacket extends PEPacket{
 			case self::TYPE_WHISPER:
 			case self::TYPE_ANNOUNCEMENT:
 				$this->source = $this->getString();
-				if ($playerProtocol >= Info::PROTOCOL_200) {
+				if ($playerProtocol >= Info::PROTOCOL_200 && $playerProtocol < Info::PROTOCOL_290) {
 					$this->getString(); // third party name
 					$this->getSignedVarInt(); // platform id
 				}
@@ -86,7 +87,7 @@ class TextPacket extends PEPacket{
 		if ($playerProtocol >= Info::PROTOCOL_120) {
 			$this->xuid = $this->getString();
 			if ($playerProtocol >= Info::PROTOCOL_200) {
-				$this->getString(); // platform id
+				$this->platformChatId = $this->getString(); // platform id
 			}
 		}
 	}
@@ -103,7 +104,7 @@ class TextPacket extends PEPacket{
 			case self::TYPE_WHISPER:
 			case self::TYPE_ANNOUNCEMENT:
 				$this->putString($this->source);
-				if ($playerProtocol >= Info::PROTOCOL_200) {
+				if ($playerProtocol >= Info::PROTOCOL_200 && $playerProtocol < Info::PROTOCOL_290) {
 					$this->putString(""); // third party name
 					$this->putSignedVarInt(0); // platform id
 				}
@@ -122,17 +123,16 @@ class TextPacket extends PEPacket{
 				foreach ($this->parameters as $p) {
 					$this->putString($p);
 				}
-				if ($playerProtocol >= Info::PROTOCOL_200) { // it's not should be here, but it prevent client crushing
+				if ($playerProtocol >= Info::PROTOCOL_200 && $playerProtocol < Info::PROTOCOL_290) { // it's not should be here, but it prevent client crushing
 					$this->putString(""); // third party name
 					$this->putSignedVarInt(0); // platform id
 				}
 				break;
 		}
 		if ($playerProtocol >= Info::PROTOCOL_120) {
-//			$this->putString('');//temp hack for prevent xbox and chat lags
 			$this->putString($this->xuid);
 			if ($playerProtocol >= Info::PROTOCOL_200) {
-				$this->putString(""); // platform id
+				$this->putString($this->platformChatId); // platform id
 			}
 		}
 	}

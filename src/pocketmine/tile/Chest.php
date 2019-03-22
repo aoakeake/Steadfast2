@@ -58,18 +58,21 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 
 	public function close(){
 		if($this->closed === false){
-			foreach($this->getInventory()->getViewers() as $player){
-				$player->removeWindow($this->getInventory());
-			}
-
-			foreach($this->getInventory()->getViewers() as $player){
-				$player->removeWindow($this->getRealInventory());
+			if ($this->doubleInventory instanceof DoubleChestInventory) {
+				foreach($this->doubleInventory->getViewers() as $player){
+					$player->removeWindow($this->doubleInventory);
+				}
+			} else {
+				foreach($this->inventory->getViewers() as $player){
+					$player->removeWindow($this->inventory);
+				}
 			}
 			parent::close();
 		}
 	}
 
 	public function saveNBT(){
+		parent::saveNBT();
 		$this->namedtag->Items = new Enum("Items", []);
 		$this->namedtag->Items->setTagType(NBT::TAG_Compound);
 		for($index = 0; $index < $this->getSize(); ++$index){

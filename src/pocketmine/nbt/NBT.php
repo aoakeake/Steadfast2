@@ -93,7 +93,7 @@ class NBT{
 
 		if($item->hasCompound()){
 			$tag->tag = clone $item->getNamedTag();
-//			$tag->tag->setName("tag");
+			$tag->tag->setName("tag");
 		}
 
 		return $tag;
@@ -111,6 +111,7 @@ class NBT{
 		$item = Item::get($tag->id->getValue(), !isset($tag->Damage) ? 0 : $tag->Damage->getValue(), $tag->Count->getValue());
 		
 		if(isset($tag->tag) and $tag->tag instanceof Compound){
+			$tag->tag->setName("");
 			$item->setNamedTag($tag->tag);
 		}
 
@@ -528,7 +529,7 @@ class NBT{
 				break;
 			case NBT::TAG_Long:
 				$tag = new LongTag($this->checkGetString($new));
-				$tag->read($this);
+				$tag->read($this, $new);
 				break;
 			case NBT::TAG_Float:
 				$tag = new FloatTag($this->checkGetString($new));
@@ -755,6 +756,10 @@ class NBT{
 	 */
 	public function setData($data){
 		$this->data = $data;
+	}
+	
+	public function getOffset() {
+		return $this->offset;
 	}
 
 }

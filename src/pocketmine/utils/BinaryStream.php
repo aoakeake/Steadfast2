@@ -3,6 +3,7 @@
 namespace pocketmine\utils;
 
 use pocketmine\item\Item;
+use pocketmine\nbt\NBT;
 use pocketmine\network\protocol\Info;
 
 class BinaryStream {
@@ -200,8 +201,8 @@ class BinaryStream {
 		$this->putLInt($uuid->getPart(2));
 	}
 
-	public function getSlot($playerProtocol) {		
-		$id = $this->getSignedVarInt();		
+	public function getSlot($playerProtocol) {
+		$id = $this->getSignedVarInt();
 		if ($id <= 0) {
 			return Item::get(Item::AIR, 0, 0);
 		}
@@ -214,10 +215,26 @@ class BinaryStream {
 		$nbt = "";		
 		if ($nbtLen > 0) {
 			$nbt = $this->get($nbtLen);
+		} elseif($nbtLen == -1) {
+			$nbtCount = $this->getVarInt();
+			for ($i = 0; $i < $nbtCount; $i++) {
+				$nbtTag = new NBT(NBT::LITTLE_ENDIAN);
+				$offset = $this->getOffset();
+				$nbtTag->read(substr($this->getBuffer(), $offset), false, true);
+				$nbt = $nbtTag->getData();
+				$this->setOffset($offset + $nbtTag->getOffset());
+			}
 		}
-		$this->offset += 2;
-		
-		return Item::get($id, $meta, $count, $nbt);
+		$item = Item::get($id, $meta, $count, $nbt);
+		$canPlaceOnBlocksCount = $this->getSignedVarInt();
+		for ($i = 0; $i < $canPlaceOnBlocksCount; $i++) {
+			$item->addCanPlaceOnBlocks($this->getString());
+		}
+		$canDestroyBlocksCount = $this->getSignedVarInt();
+		for ($i = 0; $i < $canDestroyBlocksCount; $i++) {
+			$item->addCanDestroyBlocks($this->getString());
+		}
+		return $item;
 	}
 
 	public function putSlot(Item $item, $playerProtocol) {
@@ -230,8 +247,16 @@ class BinaryStream {
 		$nbt = $item->getCompound();	
 		$this->putLShort(strlen($nbt));
 		$this->put($nbt);
-		$this->putByte(0);
-		$this->putByte(0);
+		$canPlaceOnBlocks = $item->getCanPlaceOnBlocks();
+		$canDestroyBlocks = $item->getCanDestroyBlocks();
+		$this->putSignedVarInt(count($canPlaceOnBlocks));
+		foreach ($canPlaceOnBlocks as $blockName) {
+			$this->putString($blockName);
+		}
+		$this->putSignedVarInt(count($canDestroyBlocks));
+		foreach ($canDestroyBlocks as $blockName) {
+			$this->putString($blockName);
+		}
 	}
 
 	public function feof() {
@@ -265,6 +290,10 @@ class BinaryStream {
 
 	public function putVarInt($v) {
 		$this->put(Binary::writeVarInt($v));
+	}
+	
+	public function putBool($v) {
+		$this->put(Binary::writeBool($v));
 	}
 
 	public function getString(){

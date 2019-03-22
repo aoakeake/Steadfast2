@@ -33,6 +33,12 @@ class ResourcePacksInfoPacket extends PEPacket {
 			$this->putLLong($addon->size);
 			$this->putString($addon->contentKey);
 			$this->putString($addon->subPackName);
+			if ($playerProtocol >= Info::PROTOCOL_280) {
+				$this->putString('');
+			}
+		}
+		if ($playerProtocol >= Info::PROTOCOL_331) {
+			$this->putByte(0); // ???
 		}
 		$this->putLShort(count($this->resourcePacks));
 		foreach ($this->resourcePacks as $resourcePack) {
@@ -41,6 +47,12 @@ class ResourcePacksInfoPacket extends PEPacket {
 			$this->putLLong($resourcePack->size);
 			$this->putString($resourcePack->contentKey);
 			$this->putString($resourcePack->subPackName);
+			if ($playerProtocol >= Info::PROTOCOL_280) {
+				$this->putString('');
+			}
+		}
+		if ($playerProtocol >= Info::PROTOCOL_331) {
+			$this->putByte(0); // ???
 		}
 	}
 

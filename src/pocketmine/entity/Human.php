@@ -51,8 +51,8 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	protected $uuid;
 	protected $rawUUID;
 
-	public $width = 0.6;
-	public $length = 0.6;
+	public $width = 0.58;
+	public $length = 0.58;
 	public $height = 1.8;
 	public $eyeHeight = 1.62;
 
@@ -98,9 +98,26 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 
 	/**
 	 * @param string $str
-	 * @param bool   $skinName
+	 * @param bool $skinName
+	 * @param string $skinGeometryName
+	 * @param string $skinGeometryData
+	 * @param string $capeData
+	 * @param bool $premium
+	 *
+	 * @return bool
 	 */
-	public function setSkin($str, $skinName, $skinGeometryName = "", $skinGeometryData = "", $capeData = ""){
+	public function setSkin($str, $skinName, $skinGeometryName = "", $skinGeometryData = "", $capeData = "", $premium = false){
+		static $allowedSkinSize = [
+			8192, // argb 64x32
+			16384, // argb 64x64
+			32768, // argb 128x64
+			65536, // argb 128x128
+		];
+
+		if (!in_array(strlen($str), $allowedSkinSize)) {
+			echo "Invalid skin size\n";
+			return false;
+		}
 		$this->skin = $str;
 		if (is_string($skinName)) {
 			$this->skinName = $skinName;
@@ -114,8 +131,13 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		if (!empty($capeData)) {
 			$this->capeData = $capeData;
 		}
+
+		return true;
 	}
 
+	/**
+	 * @return PlayerInventory
+	 */
 	public function getInventory(){
 		return $this->inventory;
 	}
