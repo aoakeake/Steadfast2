@@ -34,13 +34,10 @@ use pocketmine\command\SimpleCommandMap;
 use pocketmine\entity\Arrow;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
-use pocketmine\entity\ExperienceOrb;
 use pocketmine\entity\FallingSand;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
-use pocketmine\entity\Painting;
 use pocketmine\entity\PrimedTNT;
-use pocketmine\entity\projectile\BottleOEnchanting;
 use pocketmine\entity\Snowball;
 use pocketmine\entity\Egg;
 use pocketmine\entity\Squid;
@@ -104,7 +101,6 @@ use pocketmine\tile\Chest;
 use pocketmine\tile\EnchantTable;
 use pocketmine\tile\EnderChest;
 use pocketmine\tile\Furnace;
-use pocketmine\tile\ItemFrame;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Skull;
 use pocketmine\tile\FlowerPot;
@@ -148,7 +144,6 @@ use pocketmine\entity\projectile\FireBall;
 use pocketmine\utils\MetadataConvertor;
 use pocketmine\event\server\SendRecipiesList;
 use pocketmine\network\protocol\PEPacket;
-use pocketmine\tile\Beacon;
 
 /**
  * The class that manages everything
@@ -1838,39 +1833,11 @@ class Server{
 	 * @param DataPacket $packet
 	 */
 	public static function broadcastPacket(array $players, DataPacket $packet) {
-		$readyPackets = [];
 		foreach($players as $player){
-			$protocol = $player->getPlayerProtocol();
-			$subClientId = $player->getSubClientId();
-			$playerIndex = ($protocol << 4) | $subClientId;
-			if (!isset($readyPackets[$playerIndex])) {
-				$packet->senderSubClientID = $subClientId;
-				$packet->encode($protocol);
-				$readyPackets[$playerIndex] = $packet->getBuffer();
-			}
-			$player->addBufferToPacketQueue($readyPackets[$playerIndex]);
+			$player->dataPacket($packet);
 		}
-	}
-
-	/**
-	 * Broadcasts a Minecraft packet to a list of players with delay
-	 *
-	 * @param Player[]   $players
-	 * @param DataPacket $packet
-	 * @param integer $delay
-	 */
-	public static function broadcastDelayedPacket(array $players, DataPacket $packet, $delay = 1) {
-		$readyPackets = [];
-		foreach($players as $player){
-			$protocol = $player->getPlayerProtocol();
-			$subClientId = $player->getSubClientId();
-			$playerIndex = ($protocol << 4) | $subClientId;
-			if (!isset($readyPackets[$playerIndex])) {
-				$packet->senderSubClientID = $subClientId;
-				$packet->encode($protocol);
-				$readyPackets[$playerIndex] = $packet->getBuffer();
-			}
-			$player->addDelayedPacket($readyPackets[$playerIndex], $delay);
+		if(isset($packet->__encapsulatedPacket)){
+			unset($packet->__encapsulatedPacket);
 		}
 	}
 
@@ -1881,14 +1848,9 @@ class Server{
 	 * @param DataPacket[]|string $packets
 	 */
 	public function batchPackets(array $players, array $packets){
-		$playersCount = count($players);
-		foreach ($packets as $pk) {
-			if ($playersCount < 2) {
-				foreach ($players as $p) {
-					$p->dataPacket($pk);
-				}
-			} else {
-				Server::broadcastPacket($players, $pk);
+		foreach ($players as $p) {
+			foreach ($packets as $pk) {
+				$p->dataPacket($pk);
 			}
 		}
 	}
@@ -2297,7 +2259,9 @@ class Server{
 		$pk = new PlayerListPacket();
 		$pk->type = PlayerListPacket::TYPE_REMOVE;
 		$pk->entries[] = [$uuid];
-		Server::broadcastPacket($players, $pk);
+		foreach ($players as $p){
+			$p->dataPacket($pk);
+		}
 	}
 
 	private $craftList = [];
@@ -2326,7 +2290,7 @@ class Server{
 				}elseif($recipe instanceof FurnaceRecipe) {
 					$pk->addFurnaceRecipe($recipe);
 				}
-			}
+			}		
 			
 			$pk->encode($p->getPlayerProtocol(), $p->getSubClientId());
 			$bpk = new BatchPacket();
@@ -2538,10 +2502,6 @@ class Server{
 		Entity::registerEntity(Zombie::class);
 		Entity::registerEntity(ZombieVillager::class);
 		Entity::registerEntity(FireBall::class);
-		Entity::registerEntity(BottleOEnchanting::class);
-		Entity::registerEntity(ExperienceOrb::class);
-
-		Entity::registerEntity(Painting::class);
 	}
 
 	private function registerTiles(){
@@ -2554,8 +2514,6 @@ class Server{
         Tile::registerTile(EnderChest::class);
 		Tile::registerTile(Bed::class);
 		Tile::registerTile(Cauldron::class);
-		Tile::registerTile(ItemFrame::class);
-		Tile::registerTile(Beacon::class);
 	}
 
 	public function shufflePlayers(){

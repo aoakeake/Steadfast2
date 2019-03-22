@@ -2,16 +2,14 @@
 
 namespace pocketmine\network\multiversion;
 
-use pocketmine\event\inventory\InventoryCreationEvent;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\PlayerInventory120;
+use pocketmine\Player;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\ContainerSetSlotPacket;
 use pocketmine\network\protocol\Info as ProtocolInfo;
 use pocketmine\network\protocol\v120\InventoryContentPacket;
 use pocketmine\network\protocol\v120\InventorySlotPacket;
-use pocketmine\Player;
-use pocketmine\Server;
 
 abstract class Multiversion {
 	
@@ -23,7 +21,6 @@ abstract class Multiversion {
 	 * @return PlayerInventory
 	 */
 	public static function getPlayerInventory($player) {
-		$inventoryClass = PlayerInventory::class;
 		switch ($player->protocol) {
 			case ProtocolInfo::PROTOCOL_120:
 			case ProtocolInfo::PROTOCOL_200:
@@ -35,25 +32,12 @@ abstract class Multiversion {
 			case ProtocolInfo::PROTOCOL_273:
 			case ProtocolInfo::PROTOCOL_274:
 			case ProtocolInfo::PROTOCOL_280:
-			case ProtocolInfo::PROTOCOL_282:
-			case ProtocolInfo::PROTOCOL_290:
-			case ProtocolInfo::PROTOCOL_310:
-			case ProtocolInfo::PROTOCOL_311:
-			case ProtocolInfo::PROTOCOL_330:
-			case ProtocolInfo::PROTOCOL_331:
-			case ProtocolInfo::PROTOCOL_332:
-			case ProtocolInfo::PROTOCOL_340:
-			case ProtocolInfo::PROTOCOL_342:
-			case ProtocolInfo::PROTOCOL_350:
-			case ProtocolInfo::PROTOCOL_351:
-			case ProtocolInfo::PROTOCOL_354:
-				$inventoryClass = PlayerInventory120::class;
-				break;
+//				var_dump('Create 120 inv');
+				return new PlayerInventory120($player);
+			default:
+//				var_dump('Create default inv');
+				return new PlayerInventory($player);
 		}
-		$event = new InventoryCreationEvent(PlayerInventory::class, $inventoryClass, $player);
-		Server::getInstance()->getPluginManager()->callEvent($event);
-		$class = $event->getInventoryClass();
-		return new $class($player);
 	}
 	
 	/**

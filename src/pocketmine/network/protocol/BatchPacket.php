@@ -31,7 +31,7 @@ class BatchPacket extends PEPacket{
 	public $payload;
 
 	public function decode($playerProtocol) {
-		$this->payload = $this->get(strlen($this->getBuffer()) - $this->getOffset());
+		$this->payload = $this->get(true);
 	}
 
 	public function encode($playerProtocol) {

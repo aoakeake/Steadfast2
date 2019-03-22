@@ -25,6 +25,7 @@
 namespace pocketmine\entity;
 
 use pocketmine\block\Block;
+use pocketmine\block\Water;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDespawnEvent;
@@ -54,7 +55,11 @@ use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\Network;
+use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\MobEffectPacket;
+use pocketmine\network\protocol\MoveEntityPacket;
+use pocketmine\network\protocol\MovePlayerPacket;
 use pocketmine\network\protocol\RemoveEntityPacket;
 use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\network\protocol\SetTimePacket;
@@ -62,7 +67,12 @@ use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use pocketmine\utils\ChunkException;
-use pocketmine\network\multiversion\Entity as Multiversion;
+use pocketmine\block\Liquid;
+
+use pocketmine\block\Cobweb;
+use pocketmine\block\Fire;
+use pocketmine\block\Ladder;
+use pocketmine\block\Vine;
 
 abstract class Entity extends Location implements Metadatable{
 
@@ -496,23 +506,20 @@ abstract class Entity extends Location implements Metadatable{
 	 *
 	 * @return Entity
 	 */
-	public static function createEntity($type, FullChunk $chunk, Compound $nbt, ...$args) {
+	public static function createEntity($type, FullChunk $chunk, Compound $nbt, ...$args){
 		if(isset(self::$knownEntities[$type])){
 			$class = self::$knownEntities[$type];
 			return new $class($chunk, $nbt, ...$args);
 		}
+
 		return null;
 	}
 
-	public static function registerEntity($className, $force = false) {
+	public static function registerEntity($className, $force = false){
 		$class = new \ReflectionClass($className);
 		if (is_a($className, Entity::class, true) && !$class->isAbstract()) {
 			if ($className::NETWORK_ID !== -1) {
 				self::$knownEntities[$className::NETWORK_ID] = $className;
-				$peEntityName = Multiversion::getNameByID($className::NETWORK_ID);
-				if ($peEntityName != Multiversion::NAME_NONE) {
-					self::$knownEntities[$peEntityName] = $className;
-				}
 			} else if (!$force) {
 				return false;
 			}
@@ -521,6 +528,7 @@ abstract class Entity extends Location implements Metadatable{
 			self::$shortNames[$className] = $class->getShortName();
 			return true;
 		}
+
 		return false;
 	}
 
@@ -1488,14 +1496,6 @@ abstract class Entity extends Location implements Metadatable{
 	
 	public function isCanFreezeChunk() {
 		return false;
-	}
-	
-	public function interact($player) {
-		
-	}
-	
-	public function removeClosedViewer($player) {
-		unset($this->hasSpawned[$player->getId()]);
 	}
 
 }

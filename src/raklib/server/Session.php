@@ -521,12 +521,9 @@ class Session{
     }
 
     public function close(){
-		$pk = new CLIENT_DISCONNECT_DataPacket();
-		$pk->encode();
-		$sendPacket = new EncapsulatedPacket();
-		$sendPacket->reliability = 3;
-		$sendPacket->buffer = $pk->buffer;
-		$this->addToQueue($sendPacket);
+		$pk = EncapsulatedPacket::fromBinary("\x60\x00\x08\x00\x00\x00\x00\x00\x00\x00\x15");
+		$pk->buffer = Binary::writeVarInt(strlen($pk->buffer)) . $pk->buffer;
+		$this->addEncapsulatedToQueue($pk, RakLib::FLAG_NEED_ZLIB);
 		$this->sendQueue();
 		$this->sessionManager = null;
     }

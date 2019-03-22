@@ -73,8 +73,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 		$this->interface->sendOption("name",
 		"MCPE;".addcslashes($this->name, ";") .";".
 		(Info::CURRENT_PROTOCOL).";".
-//		\pocketmine\MINECRAFT_VERSION_NETWORK.";".
-		''.";".
+		\pocketmine\MINECRAFT_VERSION_NETWORK.";".
 		$this->count.";".$maxcount . ";". Server::getServerId()
 		);
 	}
@@ -116,15 +115,21 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 		}
 	}
 
-	public function process() {
-		$max = $this->interface->getPacketQueueSize();
-		while ($max && $this->interface->handlePacket()) {
-			$max--;
+	public function process(){
+		$work = false;
+		if($this->interface->handlePacket()){
+			$work = true;
+			while($this->interface->handlePacket()){
+			}
 		}
-		if ($this->rakLib->isTerminated()) {
+
+		if($this->rakLib->isTerminated()){
 			$this->network->unregisterInterface($this);
+
 			throw new \Exception("RakLib Thread crashed");
 		}
+
+		return $work;
 	}
 
 	public function closeSession($identifier, $reason){
@@ -231,10 +236,6 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 		$tmpStream = new BinaryStream($buffer);
 		$header = $tmpStream->getVarInt();
 		$pid = $header & 0x3FF;		
-		if ($pid == 0x13) { //speed hack
-			$player->setLastMovePacket($buffer);
-			return null;
-		}
 		if (($data = $this->network->getPacket($pid, $player->getPlayerProtocol())) === null) {
 			return null;
 		}

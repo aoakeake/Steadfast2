@@ -33,7 +33,10 @@
             {
                 "description": "Gets the version of this server",
                 "permission": "any",
-                "aliases": [],
+                "aliases": [
+                    "ver",
+                    "about"
+                ],
                 "overloads": {
                     "byPass": {
                         "input": {

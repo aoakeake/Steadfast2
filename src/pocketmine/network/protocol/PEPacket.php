@@ -48,7 +48,7 @@ abstract class PEPacket extends DataPacket {
 	public function reset($playerProtocol = 0) {
 		if ($playerProtocol < Info::PROTOCOL_280) {
 			parent::reset();
-			$this->putByte(self::$packetsIds[$playerProtocol][$this::PACKET_NAME]);	
+			$this->putByte(self::$packetsIds[$playerProtocol][$this::PACKET_NAME]);
 			if ($playerProtocol >= Info::PROTOCOL_120) {
 				$this->putByte($this->senderSubClientID);
 				$this->putByte($this->targetSubClientID);
@@ -63,35 +63,6 @@ abstract class PEPacket extends DataPacket {
 	
 	public final static function convertProtocol($protocol) {
 		switch ($protocol) {
-			case Info::PROTOCOL_354:
-				return Info::PROTOCOL_354;
-			case Info::PROTOCOL_353:
-			case Info::PROTOCOL_352:
-			case Info::PROTOCOL_351:
-				return Info::PROTOCOL_351;
-			case Info::PROTOCOL_350:
-				return Info::PROTOCOL_350;
-			case Info::PROTOCOL_342:
-				return Info::PROTOCOL_342;
-			case Info::PROTOCOL_340:
-				return Info::PROTOCOL_340;
-			case Info::PROTOCOL_332:
-				return Info::PROTOCOL_332;
-			case Info::PROTOCOL_331:
-				return Info::PROTOCOL_331;
-			case Info::PROTOCOL_330:
-				return Info::PROTOCOL_330;
-			case Info::PROTOCOL_311:
-			case Info::PROTOCOL_312:
-			case Info::PROTOCOL_313:
-				return Info::PROTOCOL_311;
-			case Info::PROTOCOL_310:
-				return Info::PROTOCOL_310;
-			case Info::PROTOCOL_290:
-			case Info::PROTOCOL_291:
-				return Info::PROTOCOL_290;
-			case Info::PROTOCOL_282:
-				return Info::PROTOCOL_282;
 			case Info::PROTOCOL_281:
 			case Info::PROTOCOL_280:
 				return Info::PROTOCOL_280;

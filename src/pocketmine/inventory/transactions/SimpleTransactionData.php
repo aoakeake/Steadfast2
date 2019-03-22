@@ -11,6 +11,9 @@ use pocketmine\Player;
 
 class SimpleTransactionData {
 	
+	/**
+	 * @INPORTANT don't use constants ACTION_ outside this class, it will change with new spec 
+	 */
 	const ACTION_CRAFT_PUT_SLOT = 3;
 	const ACTION_CRAFT_GET_SLOT = 5;
 	const ACTION_CRAFT_GET_RESULT = 7;
@@ -111,21 +114,10 @@ class SimpleTransactionData {
 				switch ($this->action) {
 					case self::ACTION_CRAFT_GET_RESULT:
 						$slot = PlayerInventory120::CRAFT_RESULT_INDEX;
-						if ($inventory->isQuickCraftEnabled()) {
-							$inventory->setQuickCraftMode(false);
-						}
 						break;
-					// client send slot 0 for all craft transactions by quick craft, so we need manage it manually
 					case self::ACTION_CRAFT_USE:
 						if ($this->slot == 0) {
-							$item = $inventory->getItem(PlayerInventory120::CRAFT_INDEX_0);
-							if (!$this->newItem->equals($item) || $item->getCount() < $this->newItem->getCount()) {
-								if (!$inventory->isQuickCraftEnabled()) {
-									$inventory->setQuickCraftMode(true);
-								}
-								$slot = $inventory->getNextFreeQuickCraftSlot();
-								break;
-							}
+							$this->slot = $player->hackForCraftLastIndex++;
 						}
 					default:						
 						$slot = PlayerInventory120::CRAFT_INDEX_0 - $this->slot;

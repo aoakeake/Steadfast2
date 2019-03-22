@@ -102,7 +102,7 @@ class SimpleTransactionGroup implements TransactionGroup {
 			$sourceItem = $ts->getSourceItem();
 			$sourceItemIsAir = $sourceItem->getId() === Item::AIR;
 			if ($ts->getSlot() == PlayerInventory120::CREATIVE_INDEX) {
-				if (!$sourceItemIsAir && Item::getCreativeItemIndex($sourceItem) === -1) {
+				if (!$sourceItemIsAir && Item::getCreativeItemIndex($sourceItem) === -1) {					
 					return false;
 				}
 			} else {
@@ -166,8 +166,8 @@ class SimpleTransactionGroup implements TransactionGroup {
 			$this->sendInventories();
 			throw new \Exception('Event was canceled');
 		}
-		
-		foreach ($this->transactions as $transaction) {
+
+		foreach ($this->transactions as $transaction) {			
 			$transaction->getInventory()->setItem($transaction->getSlot(), $transaction->getTargetItem());
 			if ($transaction->isNeedInventoryUpdate()) {
 				$this->sendInventories();

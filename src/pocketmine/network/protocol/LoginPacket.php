@@ -62,7 +62,6 @@ class LoginPacket extends PEPacket {
 	public $isVerified = true;
 	public $premiunSkin = "";
 	public $identityPublicKey = "";
-	public $platformChatId = "";
 
 	private function getFromString(&$body, $len) {
 		$res = substr($body, 0, $len);
@@ -200,9 +199,6 @@ class LoginPacket extends PEPacket {
 		}
 		if (isset($this->playerData["PremiumSkin"])) {
 			$this->premiunSkin = $this->playerData["PremiumSkin"];
-		}
-		if (isset($this->playerData["PlatformOnlineId"])) {
-			$this->platformChatId = $this->playerData["PlatformOnlineId"];
 		}
 		$this->originalProtocol = $this->protocol1;
 		$this->protocol1 = self::convertProtocol($this->protocol1);

@@ -22,6 +22,7 @@
 namespace pocketmine\entity;
 
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\entity\ItemDespawnEvent;
 use pocketmine\event\entity\ItemSpawnEvent;
 use pocketmine\item\Item as ItemItem;
@@ -30,12 +31,12 @@ use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\Network;
 use pocketmine\network\protocol\AddItemEntityPacket;
 use pocketmine\Player;
 use pocketmine\nbt\NBT;
 use pocketmine\level\Level;
 use pocketmine\level\format\FullChunk;
-use pocketmine\block\Block;
 
 class Item extends Entity{
 	const NETWORK_ID = 64;
@@ -50,14 +51,14 @@ class Item extends Entity{
 	public $length = 0.25;
 	public $height = 0.25;
 	protected $gravity = 0.04;
-	protected $drag = 0.02;
+//	protected $drag = 0.02;
+	protected $drag = 0.15;
 
 	public $canCollide = false;
 	
 	public function __construct(FullChunk $chunk, Compound $nbt) {
 		parent::__construct($chunk, $nbt);
 		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_NO_AI, true, self::DATA_TYPE_LONG, false);
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_AFFECTED_BY_GRAVITY, true, self::DATA_TYPE_LONG, false); // fix for 1.2.14.3
 	}
 
 	protected function initEntity(){
@@ -101,59 +102,64 @@ class Item extends Entity{
 		if($this->closed){
 			return false;
 		}
-		if ($this->dead) {
-			$this->despawnFromAll();
-			$this->close();
-			return false;
-		}
+
 		$tickDiff = $currentTick - $this->lastUpdate;
 		if ($tickDiff < 1) {
 			$tickDiff = 1;
 		}
 		$this->lastUpdate = $currentTick;
-		$this->age += $tickDiff;
-		if ($this->pickupDelay > 0 && $this->pickupDelay < 32767) { //Infinite delay
-			$this->pickupDelay -= $tickDiff;
-		}
-		$this->checkBlockCollision();
-		if ($this->y < 1) {
-			$this->kill();
-			return true;
-		} elseif ($this->age > 1200) {
-			$this->server->getPluginManager()->callEvent($ev = new ItemDespawnEvent($this));
-			if ($ev->isCancelled()) {
-				$this->age = 0;
-			} else {
-				$this->kill();
-				return true;
+
+		//$this->timings->startTiming();
+
+		$hasUpdate = $this->entityBaseTick($tickDiff);
+
+		if (!$this->dead) {
+
+			if ($this->pickupDelay > 0 && $this->pickupDelay < 32767) { //Infinite delay
+				$this->pickupDelay -= $tickDiff;
 			}
-		}
-		if (!$this->onGround || $this->motionX != 0 || $this->motionY != 0 || $this->motionZ != 0) {
-			if ($this->onGround && $this->motionY <= 0) {
-				$this->motionY = 0;
-			} else {
-				$this->motionY -= $this->gravity;
-				$this->motionY *= 0.96;
-			}
-			if (abs($this->motionX) < 0.001) {
-				$this->motionX = 0;
-			}
-			if (abs($this->motionZ) < 0.001) {
-				$this->motionZ = 0;
-			}
-			if ($this->motionX != 0 || $this->motionZ != 0) {
-				$friction = 1 - $this->drag;
-				if ($this->onGround) {
-					$friction *= Block::getFrictionFactor();
-				}
-				$this->motionX *= $friction;
-				$this->motionZ *= $friction;
-			}
-		
+
+			$this->motionY -= $this->gravity;
+
+			$this->keepMovement = $this->checkObstruction($this->x, ($this->boundingBox->minY + $this->boundingBox->maxY) / 2, $this->z);
 			$this->move($this->motionX, $this->motionY, $this->motionZ);
+
+			$friction = 1 - $this->drag;
+
+			if ($this->onGround && ($this->motionX != 0 || $this->motionZ != 0)) {
+				$friction = $this->level->getBlock(new Vector3($this->getFloorX(), $this->getFloorY() - 1, $this->getFloorZ()))->getFrictionFactor() * $friction;
+			}
+
+			$this->motionX *= $friction;
+			$this->motionY *= 1 - $this->drag;
+			$this->motionZ *= $friction;
+
 			$this->updateMovement();
-		}		
-		return true;
+			
+			if ($this->y < 1) {
+				$this->kill();
+				$hasUpdate = true;
+			} else {
+				if ($this->onGround) {
+					$this->motionY *= -0.5;
+				}
+
+				if ($this->age > 1200) {
+					$this->server->getPluginManager()->callEvent($ev = new ItemDespawnEvent($this));
+					if ($ev->isCancelled()) {
+						$this->age = 0;
+					} else {
+						$this->kill();
+						$hasUpdate = true;
+					}
+				}
+			}
+			$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_AFFECTED_BY_GRAVITY, true); // fix for 1.2.14.3
+		}
+
+		//$this->timings->stopTiming();
+		
+		return $hasUpdate || !$this->onGround || $this->motionX != 0 || $this->motionY != 0 || $this->motionZ != 0;
 	}
 
 	public function saveNBT(){
@@ -240,36 +246,39 @@ class Item extends Entity{
 			$pk->item = $this->getItem();
 			$pk->metadata = $this->dataProperties;
 			$player->dataPacket($pk);
+	//		$this->sendData($player);
 			$this->hasSpawned[$player->getId()] = $player;
 		}
 	}
 
 	
-	protected function updateMovement() {
-		$diffPosition = ($this->x - $this->lastX) ** 2 + ($this->y - $this->lastY) ** 2 + ($this->z - $this->lastZ) ** 2;
-		if ($diffPosition > 0.04) {
+	protected function updateMovement(){	
+		$diffPositionX =  abs($this->x - $this->lastX);
+		$diffPositionY =  abs($this->y - $this->lastY);
+		$diffPositionZ =  abs($this->z - $this->lastZ);		
+		
+		$diffMotionX = abs($this->motionX - $this->lastMotionX);
+		$diffMotionY = abs($this->motionY - $this->lastMotionY);
+		$diffMotionZ = abs($this->motionZ - $this->lastMotionZ);
+		
+
+		if($diffPositionX > 0.2 || $diffPositionZ > 0.2 || ($diffPositionX > 0.01 && $diffPositionZ > 0.01 && $diffPositionY > 0.2)){
 			$this->lastX = $this->x;
 			$this->lastY = $this->y;
 			$this->lastZ = $this->z;
+			$this->lastYaw = $this->yaw;
+			$this->lastPitch = $this->pitch;
+			
 			$this->level->addEntityMovement($this->getViewers(), $this->id, $this->x, $this->y + $this->getEyeHeight(), $this->z, $this->yaw, $this->pitch, $this->yaw);
 		}
-	}
 
-	public function move($dx, $dy, $dz) {
-		$this->boundingBox->offset($dx, $dy, $dz);
-		$this->setComponents($this->x + $dx, $this->y + $dy, $this->z + $dz);
-		$this->checkChunks();
-		$blockY = $this->level->getBlock(new Vector3(floor($this->x), floor($this->y - 0.5), floor($this->z)));
-		$this->onGround = !$blockY->isTransparent();
-		$blockX = $this->level->getBlock(new Vector3(floor($this->x + $this->motionX), floor($this->y), floor($this->z)));
-		if (!$blockX->isTransparent()) {
-			$this->motionX = 0;
+		if($diffMotionX > 0.05 || $diffMotionZ > 0.05 || ($diffMotionX > 0.001 && $diffMotionZ > 0.001 && $diffMotionY > 0.05 )){ 
+			$this->lastMotionX = $this->motionX;
+			$this->lastMotionY = $this->motionY;
+			$this->lastMotionZ = $this->motionZ;
+			
+			$this->level->addEntityMotion($this->getViewers(), $this->id, $this->motionX, $this->motionY, $this->motionZ);
 		}
-		$blockZ = $this->level->getBlock(new Vector3(floor($this->x), floor($this->y), floor($this->z + $this->motionZ)));
-		if (!$blockZ->isTransparent()) {
-			$this->motionZ = 0;
-		}
-		return true;
 	}
-
+	
 }

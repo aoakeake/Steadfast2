@@ -97,20 +97,6 @@ abstract class DataPacket extends BinaryStream{
 		self::$packetsIds[Info::PROTOCOL_273] = $oClass->getConstants();
 		self::$packetsIds[Info::PROTOCOL_274] = $oClass->getConstants();
 		self::$packetsIds[Info::PROTOCOL_280] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_282] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_290] = $oClass->getConstants();
-		$oClass = new \ReflectionClass ('pocketmine\network\protocol\Info310');
-		self::$packetsIds[Info::PROTOCOL_310] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_311] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_330] = $oClass->getConstants();
-		$oClass = new \ReflectionClass ('pocketmine\network\protocol\Info331');
-		self::$packetsIds[Info::PROTOCOL_331] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_332] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_340] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_342] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_350] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_351] = $oClass->getConstants();
-		self::$packetsIds[Info::PROTOCOL_354] = $oClass->getConstants();
 	}
 	
 }
