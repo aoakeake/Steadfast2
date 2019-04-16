@@ -2275,7 +2275,7 @@ class Level implements ChunkManager, Metadatable{
 	 * @return Position
 	 */
 	public function getSpawn(){
-		return $this->getSpawnLocation();
+		return $this->getSpawnLocation()->add(0.5, 0.5, 0.5);
 	}
 
 	/**
