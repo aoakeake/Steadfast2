@@ -26,8 +26,9 @@ use pocketmine\level\ChunkManager;
 use pocketmine\level\format\Chunk;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Random;
+use pocketmine\level\generator\Generator;
 
-class Void extends Generator{
+class VoidGenerate extends Generator{
 	/** @var ChunkManager */
 	private $level;
 	/** @var Chunk */
@@ -90,7 +91,7 @@ class Void extends Generator{
 	}
 
 	public function getSpawn(){
-		return new Vector3(128, 72, 128);
+		return new Vector3(128, 65, 128);
 	}
 
 }

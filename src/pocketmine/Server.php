@@ -68,7 +68,7 @@ use pocketmine\level\generator\Flat;
 use pocketmine\level\generator\hell\Nether;
 use pocketmine\level\generator\normal\Normal;
 use pocketmine\level\generator\normal\Normal2;
-//use pocketmine\level\generator\Void;
+use pocketmine\level\generator\VoidGenerate;
 use pocketmine\level\Level;
 use pocketmine\metadata\EntityMetadataStore;
 use pocketmine\metadata\LevelMetadataStore;
@@ -1126,6 +1126,10 @@ class Server{
 
 		$seed = $seed === null ? Binary::readInt(@Utils::getRandomBytes(4, false)) : (int) $seed;
 
+		if(!isset($options["preset"])){
+			$options["preset"] = $this->getConfigString("generator-settings", "");
+		}
+
 		if(!($generator !== null and class_exists($generator, true) and is_subclass_of($generator, Generator::class))){
 			$generator = Generator::getGenerator($this->getLevelType());
 		}
@@ -1683,9 +1687,9 @@ class Server{
 		Generator::addGenerator(Normal::class, "default");
 		Generator::addGenerator(Nether::class, "hell");
 		Generator::addGenerator(Nether::class, "nether");
-//		Generator::addGenerator(Void::class, "void");
+		Generator::addGenerator(VoidGenerate::class, "void");
 		Generator::addGenerator(Normal2::class, "normal2");
-		
+
 		foreach((array) $this->getProperty("worlds", []) as $name => $worldSetting){
 			if($this->loadLevel($name) === false){
 				$seed = $this->getProperty("worlds.$name.seed", time());
